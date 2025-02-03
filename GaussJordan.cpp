@@ -88,7 +88,7 @@ public:
 };
 
 int main() {
-    /*
+    /* identity matrix
          2y + z = 4
          x + y + 2z = 6
          2x + y + z = 7
