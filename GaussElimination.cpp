@@ -2,106 +2,96 @@
 #include<bits/stdc++.h>
 using namespace std;
 
-#define M 10
-class GaussJordanElimination {
+const int MAXN = 100;
+
+class GaussianElimination {
 private:
-    float a[M][M];
     int n;
+    double A[MAXN][MAXN+1];
+    double x[MAXN];
 
 public:
-    GaussJordanElimination(int size, float matrix[M][M]) {
+
+    GaussianElimination(int size, double inputMatrix[MAXN][MAXN+1]) {
         n = size;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j <= n; j++) {
-                a[i][j] = matrix[i][j];
+                A[i][j] = inputMatrix[i][j];
             }
         }
     }
-    void PrintMatrix() {
+    void partialPivot() {
         for (int i = 0; i < n; i++) {
-            for (int j = 0; j <= n; j++)
-                cout << fixed << setprecision(1) << a[i][j] << " ";
-            cout << endl;
-        }
-    }
-    int PerformOperation() {
-        int i, j, k = 0, c, flag = 0;
-        float pro;
-        for (i = 0; i < n; i++) {
-            if (a[i][i] == 0) {
-                c = 1;
-                while ((i + c) < n && a[i + c][i] == 0)
-                    c++;
-                if ((i + c) == n) {
-                    flag = 1;
-                    break;
+            int pivot_row = i;
+            for (int j = i + 1; j < n; j++) {
+                if (abs(A[j][i]) > abs(A[pivot_row][i])) {
+                    pivot_row = j;
                 }
-                for (j = i, k = 0; k <= n; k++)
-                    swap(a[j][k], a[j + c][k]);
             }
-
-            for (j = 0; j < n; j++) {
-                if (i != j) {
-                    pro = a[j][i] / a[i][i];
-                    for (k = 0; k <= n; k++)
-                        a[j][k] = a[j][k] - a[i][k] * pro;
+            if (pivot_row != i) {
+                for (int j = i; j <= n; j++) {
+                    swap(A[i][j], A[pivot_row][j]);
+                }
+            }
+            for (int j = i + 1; j < n; j++) {
+                double factor = A[j][i] / A[i][i];
+                for (int k = i; k <= n; k++) {
+                    A[j][k] -= factor * A[i][k];
                 }
             }
         }
-        return flag;
     }
-    int CheckConsistency(int flag) {
-        int i, j;
-        float sum;
-        flag = 3;
-
-        for (i = 0; i < n; i++) {
-            sum = 0;
-            for (j = 0; j < n; j++)
-                sum += a[i][j];
-            if (sum == a[i][j])
-                flag = 2;
+    void backSubstitution() {
+        for (int i = n - 1; i >= 0; i--) {
+            double sum = 0;
+            for (int j = i + 1; j < n; j++) {
+                sum += A[i][j] * x[j];
+            }
+            x[i] = (A[i][n] - sum) / A[i][i];
         }
-        return flag;
     }
-    void PrintResult(int flag) {
-        cout << "Result is : ";
-        if (flag == 2)
-            cout << "Infinite Solutions Exist" << endl;
-        else if (flag == 3)
-            cout << "No Solution Exists" << endl;
-        else {
-            for (int i = 0; i < n; i++)
-                cout << a[i][n] / a[i][i] << " ";
+    void solve() {
+        partialPivot();
+        cout << "\nFinal Augmented Matrix after Gaussian Elimination:\n";
+        printMatrix();
+        backSubstitution();
+    }
+    void printMatrix() {
+        cout << fixed << setprecision(6);
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j <= n; j++) {
+                cout << setw(10) << A[i][j] << " ";
+            }
             cout << endl;
         }
+        cout << endl;
     }
-    void Solve() {
-        int flag = 0;
-        flag = PerformOperation();
-        if (flag == 1)
-            flag = CheckConsistency(flag);
-        cout << "Final Augmented Matrix is:" << endl;
-        PrintMatrix();
-        PrintResult(flag);
+    void printSolution() {
+        cout << "Solution for the system:\n";
+        for (int i = 0; i < n; i++) {
+            cout << "x[" << i + 1 << "] = " << fixed << setprecision(6) << x[i] << endl;
+        }
     }
 };
 
 int main() {
-    /* echelon
-         2y + z = 4
-         x + y + 2z = 6
-         2x + y + z = 7
+    int n = 3;
+    /*
+    3.0X1 + 2.0X2 - 4.0X3 =  3.0
+    2.0X1 + 3.0X2 + 3.0X3 = 15.0
+    5.0X1 - 3.0X2 +    X3 = 14.0
     */
-
-    float matrix[M][M] = {
-        { 0, 2, 1, 4 },
-        { 1, 1, 2, 6 },
-        { 2, 1, 1, 7 }
+    double inputMatrix[MAXN][MAXN+1] = {
+        {3.0, 2.0, -4.0, 3.0},
+        {2.0, 3.0,  3.0, 15.0},
+        {5.0, -3.0, 1.0, 14.0}
     };
+    GaussianElimination solver(n, inputMatrix);
 
-    GaussJordanElimination gj(3, matrix);
-    gj.Solve();
+    solver.solve();
+
+    solver.printSolution();
 
     return 0;
 }
+
